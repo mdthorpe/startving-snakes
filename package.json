@@ -1,0 +1,15 @@
+{
+  "name": "starving-snake",
+  "version": "0.1.0",
+  "description": "Starving Snakes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mike Thorpe",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "http-server": "^0.9.0"
+  }
+}
