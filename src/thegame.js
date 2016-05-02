@@ -5,6 +5,7 @@ theGame.prototype = {
         this.game.time.advancedTiming = true;
         this.game.physics.startSystem(Phaser.Physics.P2JS);
         this.game.physics.p2.restitution = 0.4;
+        this.game.physics.p2.gravity.y = 0
 
         this.ballsGroup = new Phaser.Group(this.game, '', 'balls', true, false, 'Phaser.Physics.P2JS');
         this.snakes = [];
@@ -21,22 +22,21 @@ theGame.prototype = {
 
         // init
         this.players = this.initPlayerList();
-        //  Create a new custom sized bounds, within the world bounds
-        this.customBounds = {
-            left: null,
-            right: null,
-            top: null,
-            bottom: null
-        };
 
         // Add Objects
         this.addTableBounds(false);
         this.addTableCenter(true);
 
-        this.addScoreHole(300, 82, 42, this.players["green"], false);
-        this.addScoreHole(300, 519, 42, this.players["pink"], false);
-        this.addScoreHole(82, 299, 42, this.players["orange"], false);
-        this.addScoreHole(519, 297, 42, this.players["yellow"], false);
+        // Score holes
+        this.game.add.sprite(0, 0, 'table_score_holes');
+
+        this.addScoreHole(300, 70, 38, this.players["green"], false);
+        this.addScoreHole(300, 528, 38, this.players["pink"], false);
+        this.addScoreHole(70, 300, 38, this.players["orange"], false);
+        this.addScoreHole(528, 300, 38, this.players["yellow"], false);
+
+
+        // Allow us to shoot random balls onto the field
         this.game.input.mouse.capture = true;
         this.game.input.onDown.add(function(f) {
             this.addBall(this.game.input.x,
@@ -44,7 +44,19 @@ theGame.prototype = {
                 this.game.rnd.integerInRange(0, 8));
         }, this);
 
-        this.snakes.push(this.addSnake(300, 519, this.players["pink"], true));
+        // Add snakes for players
+        this.snakes["green"] = this.addSnake(this.players["green"]);
+        this.snakes["pink"] = this.addSnake(this.players["pink"]);
+        this.snakes["orange"] = this.addSnake(this.players["orange"]);
+        this.snakes["yellow"] = this.addSnake(this.players["yellow"]);
+
+        // Add the player caps
+        this.game.add.sprite(0, 0, 'table_player_tops');
+
+        this.upKey = this.game.input.keyboard.addKey(Phaser.Keyboard.UP);
+        this.downKey = this.game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
+        this.leftKey = this.game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
+        this.rightKey = this.game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
 
     },
     update: function() {
@@ -54,20 +66,106 @@ theGame.prototype = {
             if (this.distanceBetween(this.ballsGroup.children[b], this.tableCenter) <= 70) {
                 speedToCenter = 0;
             } else if (this.distanceBetween(this.ballsGroup.children[b], this.tableCenter) <= 100) {
-                speedToCenter = speedToCenter * 20;
-            } else if (this.distanceBetween(this.ballsGroup.children[b], this.tableCenter) < 380) {
-                speedToCenter = speedToCenter * 10;
+                speedToCenter = speedToCenter * 2;
+            } else if (this.distanceBetween(this.ballsGroup.children[b], this.tableCenter) <= 300) {
+                speedToCenter = speedToCenter * 30;
             }
             this.debugCenter = speedToCenter
             this.accelerateToObject(this.ballsGroup.children[b], this.tableCenter, speedToCenter);
         }
 
+
+        // Move: green
+
+        if (this.downKey.upDuration(25)) {
+            this.mouthMove("green", "closed");
+        }
+        if (this.downKey.downDuration(25)) {
+            this.mouthMove("green", "open");
+        }
+        if (this.downKey.isDown) {
+            this.snakeMove("green", "down");
+        }
+
+        if (this.downKey.isUp) {
+            if (this.snakes["green"].body.y > this.players["green"].home.y) {
+                this.snakes["green"].body.velocity.y = -1000;
+            } else {
+                this.snakes["green"].body.velocity.y = 0;
+            }
+            this.snakes["green"].body.velocity.x = 0;
+        }
+
+        // Move : pink 
+
+        if (this.upKey.upDuration(25)) {
+            this.mouthMove("pink", "closed");
+        }
+        if (this.upKey.downDuration(25)) {
+            this.mouthMove("pink", "open");
+        }
+        if (this.upKey.isDown) {
+            this.snakeMove("pink", "up");
+        }
+
+        if (this.upKey.isUp) {
+            if (this.snakes["pink"].body.y < this.players["pink"].home.y) {
+                this.snakes["pink"].body.velocity.y = 1000;
+            } else {
+                this.snakes["pink"].body.velocity.y = 0;
+            }
+            this.snakes["pink"].body.velocity.x = 0;
+        }
+
+
+        // Move : orange 
+
+        if (this.rightKey.upDuration(25)) {
+            this.mouthMove("orange", "closed");
+        }
+        if (this.rightKey.downDuration(25)) {
+            this.mouthMove("orange", "open");
+        }
+        if (this.rightKey.isDown) {
+            this.snakeMove("orange", "right");
+        }
+
+        if (this.rightKey.isUp) {
+            if (this.snakes["orange"].body.x > this.players["orange"].home.x) {
+                this.snakes["orange"].body.velocity.x = -1000;
+            } else {
+                this.snakes["orange"].body.velocity.x = 0;
+            }
+            this.snakes["orange"].body.velocity.y = 0;
+        }
+
+        // Move : yellow 
+
+        if (this.leftKey.upDuration(25)) {
+            this.mouthMove("yellow", "closed");
+        }
+        if (this.leftKey.downDuration(25)) {
+            this.mouthMove("yellow", "open");
+        }
+        if (this.leftKey.isDown) {
+            this.snakeMove("yellow", "left");
+        }
+
+        if (this.leftKey.isUp) {
+            if (this.snakes["yellow"].body.x < this.players["yellow"].home.x) {
+                this.snakes["yellow"].body.velocity.x = 1000;
+            } else {
+                this.snakes["yellow"].body.velocity.x = 0;
+            }
+            this.snakes["yellow"].body.velocity.y = 0;
+        }
     },
 
     render: function() {
         this.game.debug.text(this.game.time.fps, 2, 20, "#ffffff")
         this.game.debug.text(this.game.input.x, 40, 20, "#ffffff");
         this.game.debug.text(this.game.input.y, 80, 20, "#ffffff");
+
     },
 
     // Util Functions
@@ -89,17 +187,52 @@ theGame.prototype = {
     initPlayerList: function() {
         var players = [];
 
-        players["green"] = this.addPlayer("green", "0x22FF22", true);
-        players["pink"] = this.addPlayer("pink", "0xFF00DD");
-        players["orange"] = this.addPlayer("orange", "0xFFB421");
-        players["yellow"] = this.addPlayer("yellow", "0XFFFC21");
+        players["green"] = this.addPlayer({
+            "name": "green",
+            "color": "0x22FF22",
+            "debug": true,
+            "home": {
+                "x": 300,
+                "y": 50
+            }
+        });
+        players["pink"] = this.addPlayer({
+            "name": "pink",
+            "color": "0xFF00DD",
+            "debug": true,
+            "home": {
+                "x": 300,
+                "y": 550
+            }
+        });
+        players["orange"] = this.addPlayer({
+            "name": "orange",
+            "color": "0xFFB421",
+            "debug": true,
+            "home": {
+                "x": 50,
+                "y": 300
+            }
+        });
+        players["yellow"] = this.addPlayer({
+            "name": "yellow",
+            "color": "0XFFFC21",
+            "debug": true,
+            "home": {
+                "x": 570,
+                "y": 300
+            }
+
+        });
         return players;
     },
 
-    addPlayer: function(name, color) {
+    addPlayer: function(args) {
         var t = {
-            "name": name,
-            "color": color,
+            "name": args.name,
+            "color": args.color,
+            "home": args.home,
+            "debug": args.debug,
             "score": 0
         }
         return t;
@@ -136,7 +269,7 @@ theGame.prototype = {
         // Load the table sprite and boundry
         //
         this.tableBounds = this.game.add.sprite(
-            (this.game.width / 2) + 1, (this.game.height / 2) + 1, 'table_bg');
+            (this.game.width / 2) + 1, (this.game.height / 2) + 1, 'table_base');
 
         this.game.physics.p2.enable(this.tableBounds, debug);
 
@@ -184,15 +317,18 @@ theGame.prototype = {
         hole.body.collides([this.ballsCollisionGroup], this.ballInHole, this);
     },
 
-    addSnake: function(x, y, player, debug) {
-        var snake = this.game.add.sprite(x, y, 'block');
-        this.game.physics.p2.enable(snake, debug);
+    addSnake: function(player) {
+        var snake = this.game.add.sprite(player.home.x, player.home.y, "snake_" + player.name);
+        this.game.physics.p2.enable(snake, player.debug);
         snake.body.clearShapes();
-        snake.body.loadPolygon('blockOpen', 'blockOpen');
+        snake.body.loadPolygon(player.name + "_closed", "closed");
         snake.body.setCollisionGroup(this.snakeHeadCollisionGroup);
         snake.body.collides([this.ballsCollisionGroup,
             this.snakeHeadCollisionGroup
         ]);
+        snake.body.static = true;
+
+        return snake;
     },
 
     ballInHole: function(hole, ball) {
@@ -200,5 +336,51 @@ theGame.prototype = {
         console.log(hole, ball);
         console.log("hole.player: ", hole.player);
         ball.sprite.destroy();
+    },
+
+    mouthMove: function(snakeColor, state) {
+        var mouthState = state;
+        this.snakes[snakeColor].body.clearShapes();
+        this.snakes[snakeColor].body.loadPolygon(snakeColor + "_" + mouthState, mouthState);
+        this.snakes[snakeColor].body.setCollisionGroup(this.snakeHeadCollisionGroup);
+        this.snakes[snakeColor].body.collides([this.ballsCollisionGroup,
+            this.snakeHeadCollisionGroup
+        ]);
+
+    },
+
+    snakeMove: function(snakeColor, direction) {
+        if (direction == "down") {
+            if (this.snakes[snakeColor].body.y <= (this.players[snakeColor].home.y + 100)) {
+                this.snakes[snakeColor].body.velocity.y = 1000;
+            } else {
+                this.snakes[snakeColor].body.velocity.y = 0;
+            }
+            this.snakes[snakeColor].body.velocity.x = 0;
+        }
+        if (direction == "up") {
+            if (this.snakes[snakeColor].body.y >= (this.players[snakeColor].home.y - 100)) {
+                this.snakes[snakeColor].body.velocity.y = -1000;
+            } else {
+                this.snakes[snakeColor].body.velocity.y = 0;
+            }
+            this.snakes[snakeColor].body.velocity.x = 0;
+        }
+        if (direction == "right") {
+            if (this.snakes[snakeColor].body.x <= (this.players[snakeColor].home.x + 100)) {
+                this.snakes[snakeColor].body.velocity.x = 1000;
+            } else {
+                this.snakes[snakeColor].body.velocity.x = 0;
+            }
+            this.snakes[snakeColor].body.velocity.y = 0;
+        }
+        if (direction == "left") {
+            if (this.snakes[snakeColor].body.x >= (this.players[snakeColor].home.x - 100)) {
+                this.snakes[snakeColor].body.velocity.x = -1000;
+            } else {
+                this.snakes[snakeColor].body.velocity.x = 0;
+            }
+            this.snakes[snakeColor].body.velocity.y = 0;
+        }
     }
 }
