@@ -14,6 +14,7 @@ theGame.prototype = {
         this.tableBoundsCollisionGroup = this.game.physics.p2.createCollisionGroup();
         this.ballsCollisionGroup = this.game.physics.p2.createCollisionGroup();
         this.scoreHoleCollisionGroup = this.game.physics.p2.createCollisionGroup();
+        this.snakeHeadCollisionGroup = this.game.physics.p2.createCollisionGroup();
 
         this.game.physics.p2.setImpactEvents(true);
         this.game.physics.p2.updateBoundsCollisionGroup();
@@ -21,26 +22,29 @@ theGame.prototype = {
         // init
         this.players = this.initPlayerList();
         //  Create a new custom sized bounds, within the world bounds
-        this.customBounds = { left: null, right: null, top: null, bottom: null };
+        this.customBounds = {
+            left: null,
+            right: null,
+            top: null,
+            bottom: null
+        };
 
         // Add Objects
         this.addTableBounds(false);
         this.addTableCenter(true);
 
-        this.snakes.push(this.addSnake(300, 82, 42, this.players["green"], true));
-
-        this.addScoreHole(300, 82, 42, this.players["green"], true);
-        this.addScoreHole(300, 519, 42, this.players["pink"], true);
-        this.addScoreHole(82, 299, 42, this.players["orange"], true);
-        this.addScoreHole(519, 297, 42, this.players["yellow"], true);
-
-        // tmp: Add some test ballsGroup.
+        this.addScoreHole(300, 82, 42, this.players["green"], false);
+        this.addScoreHole(300, 519, 42, this.players["pink"], false);
+        this.addScoreHole(82, 299, 42, this.players["orange"], false);
+        this.addScoreHole(519, 297, 42, this.players["yellow"], false);
         this.game.input.mouse.capture = true;
         this.game.input.onDown.add(function(f) {
             this.addBall(this.game.input.x,
                 this.game.input.y,
                 this.game.rnd.integerInRange(0, 8));
         }, this);
+
+        this.snakes.push(this.addSnake(300, 519, this.players["pink"], true));
 
     },
     update: function() {
@@ -118,7 +122,8 @@ theGame.prototype = {
         ball.body.setCollisionGroup(this.ballsCollisionGroup);
         ball.body.collides([this.ballsCollisionGroup,
             this.tableBoundsCollisionGroup,
-            this.scoreHoleCollisionGroup
+            this.scoreHoleCollisionGroup,
+            this.snakeHeadCollisionGroup
         ]);
 
         this.ballsGroup.add(ball);
@@ -165,7 +170,7 @@ theGame.prototype = {
 
         // draw a circle
         graphics.lineStyle(1);
-        graphics.beginFill(player.color, .15);
+        graphics.beginFill(player.color, .4);
         graphics.drawCircle(x, y, d * 2);
         graphics.endFill();
 
@@ -179,9 +184,15 @@ theGame.prototype = {
         hole.body.collides([this.ballsCollisionGroup], this.ballInHole, this);
     },
 
-    addSnake: function(x, y, r, player, debug) {
-        this.createPreviewBounds(200,200,100,100);
-        //return shapeSprite;
+    addSnake: function(x, y, player, debug) {
+        var snake = this.game.add.sprite(x, y, 'block');
+        this.game.physics.p2.enable(snake, debug);
+        snake.body.clearShapes();
+        snake.body.loadPolygon('blockOpen', 'blockOpen');
+        snake.body.setCollisionGroup(this.snakeHeadCollisionGroup);
+        snake.body.collides([this.ballsCollisionGroup,
+            this.snakeHeadCollisionGroup
+        ]);
     },
 
     ballInHole: function(hole, ball) {
@@ -189,48 +200,5 @@ theGame.prototype = {
         console.log(hole, ball);
         console.log("hole.player: ", hole.player);
         ball.sprite.destroy();
-    },
-    createPreviewBounds: function(x, y, w, h) {
-
-        var sim = this.game.physics.p2;
-
-        //  If you want to use your own collision group then set it here and un-comment the lines below
-        var mask = sim.boundsCollisionGroup.mask;
-
-        this.customBounds.left = new p2.Body({
-            mass: 0,
-            position: [sim.pxmi(x), sim.pxmi(y)],
-            angle: 1.5707963267948966
-        });
-        this.customBounds.left.addShape(new p2.Plane());
-
-        this.customBounds.right = new p2.Body({
-            mass: 0,
-            position: [sim.pxmi(x + w), sim.pxmi(y)],
-            angle: -1.5707963267948966
-        });
-        this.customBounds.right.debug = true;
-        this.customBounds.right.addShape(new p2.Plane());
-
-        this.customBounds.top = new p2.Body({
-            mass: 0,
-            position: [sim.pxmi(x), sim.pxmi(y)],
-            angle: -3.141592653589793
-        });
-        this.customBounds.top.addShape(new p2.Plane());
-
-        this.customBounds.bottom = new p2.Body({
-            mass: 0,
-            position: [sim.pxmi(x), sim.pxmi(y + h)]
-        });
-        this.customBounds.bottom.addShape(new p2.Plane());
-
-        sim.world.addBody(this.customBounds.left);
-        sim.world.addBody(this.customBounds.right);
-        sim.world.addBody(this.customBounds.top);
-        sim.world.addBody(this.customBounds.bottom);
-        console.log(this.customBounds);
-
     }
-
 }
