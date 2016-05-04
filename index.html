@@ -13,7 +13,13 @@
 		</style>
 		<script>
 			(function() {
-				var game = new Phaser.Game(600, 600, Phaser.AUTO, "game");
+				var config = {
+					"width": 600,
+					"height": 600,
+					"renderer": Phaser.AUTO,
+					"resolution": window.devicePixelRatio,
+				};
+				var game = new Phaser.Game(config);
 				game.state.add("Boot",boot);
 				game.state.add("Preload",preload);
 				game.state.add("TheGame",theGame);
@@ -25,4 +31,3 @@
 	<body>
 	</body>
 </html>
-
