@@ -10,6 +10,9 @@ var ServerPort = 3000;
 var wildcard = require('socketio-wildcard')();
 io.use(wildcard);
 
+// serve static content from public dir
+app.use(express.static('web'));
+
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });

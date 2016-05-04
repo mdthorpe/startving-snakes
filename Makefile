@@ -5,4 +5,4 @@ nvm:
 	nvm use stable
 
 run: nvm ## Run the app locally
-	node server/app.js
+	nodemon app.js
