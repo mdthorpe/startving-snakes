@@ -10,10 +10,12 @@
   "author": "Mike Thorpe",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.13.4",
-    "socket.io": "^1.4.6"
+    "express": "^4.13.3",
+    "socket.io": "^1.4.5",
+    "socketio-wildcard": "^0.3.0"
   },
   "devDependencies": {
-    "http-server": "^0.9.0"
+    "http-server": "^0.9.0",
+    "nodemon": "^1.9.2"
   }
 }
