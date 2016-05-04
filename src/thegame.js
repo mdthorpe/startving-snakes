@@ -58,6 +58,11 @@ theGame.prototype = {
         this.leftKey = this.game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
         this.rightKey = this.game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
 
+        this.scores = []
+        this.scores["green"] = this.addScoreText(10,430);
+        this.scores["pink"] = this.addScoreText(10,460);
+        this.scores["orange"] = this.addScoreText(10,490);
+        this.scores["yellow"] = this.addScoreText(10,520);
     },
     update: function() {
 
@@ -331,11 +336,19 @@ theGame.prototype = {
         return snake;
     },
 
+    addScoreText: function(x,y) {
+        var text = this.game.add.text(x,y,"0",{"fill":"#ffffff"});
+        return text;
+    },  
+
     ballInHole: function(hole, ball) {
         this.players[hole.player.name].score += 1;
-        console.log(hole, ball);
-        console.log("hole.player: ", hole.player);
+        this.updateScore(hole.player.name)
         ball.sprite.destroy();
+    },
+
+    updateScore: function(playerName) {
+        this.scores[playerName].text = this.players[playerName].score;
     },
 
     mouthMove: function(snakeColor, state) {
